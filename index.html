@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiendas D2 - Portal Corporativo</title>
+    <!-- Conector oficial de Supabase desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --emerald-900: #022c22;
+            --emerald-800: #064e3b;
+            --emerald-700: #047857;
+            --emerald-600: #059669;
+            --emerald-500: #10b981;
+            --emerald-50: #ecfdf5;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-200: #e2e8f0;
+            --slate-50: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--slate-50);
+            color: var(--slate-900);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Navbar de alta gama */
+        .navbar {
+            background: rgba(2, 44, 34, 0.95);
+            backdrop-filter: blur(12px);
+            color: #ffffff;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo {
+            background: linear-gradient(135deg, var(--emerald-600), var(--emerald-400));
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--emerald-500);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-sede {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--emerald-400);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-toggle-view {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-view:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Hero Header sofisticado */
+        .hero-section {
+            background: radial-gradient(circle at 50% 0%, #064e3b 0%, #022c22 100%);
+            color: #ffffff;
+            padding: 64px 20px 96px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-section h1 {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            letter-spacing: -0.75px;
+            background: linear-gradient(to right, #ffffff, #d1fae5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-section p {
+            font-size: 16px;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Contenedor Principal */
+        .main-wrapper {
+            max-width: 720px;
+            margin: -56px auto 60px auto;
+            padding: 0 20px;
+            width: 100%;
+            flex-grow: 1;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-form {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 48px;
+            border: 1px solid var(--slate-200);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.02);
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--slate-900);
+            letter-spacing: -0.5px;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: var(--slate-500);
+            margin-top: 6px;
+        }
+
+        /* Inputs ejecutivos */
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--slate-600);
+            margin-bottom: 8px;
+            letter-spacing: 0.75px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            background-color: var(--slate-50);
+            border: 1.5px solid var(--slate-200);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--slate-900);
+            outline: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-field:focus {
+            background-color: #ffffff;
+            border-color: var(--emerald-600);
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+        }
+
+        /* Zona interactiva de carga de PDF */
+        .upload-container {
+            background-color: var(--emerald-50);
+            border: 2px dashed var(--emerald-500);
+            border-radius: 14px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .upload-container:hover {
+            background-color: #d1fae5;
+            border-color: var(--emerald-700);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--emerald-900);
+        }
+
+        .upload-info {
+            font-size: 12px;
+            color: var(--emerald-700);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* Notificación Toast */
+        .toast-alert {
+            background-color: var(--emerald-50);
+            border: 1px solid var(--emerald-500);
+            color: var(--emerald-900);
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* Checkbox de Privacidad */
+        .terms-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 32px 0;
+        }
+
+        .terms-group input {
+            margin-top: 3px;
+            accent-color: var(--emerald-600);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .terms-group label {
+            font-size: 13px;
+            color: var(--slate-600);
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        /* Botón principal */
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(5, 150, 105, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+            box-shadow: 0 14px 24px -5px rgba(5, 150, 105, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Tabla de registros */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .data-table th {
+            background-color: var(--emerald-50);
+            color: var(--emerald-900);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            color: var(--slate-800);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 32px 20px;
+            font-size: 12px;
+            color: var(--slate-500);
+            background-color: #ffffff;
+            border-top: 1px solid var(--slate-200);
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(2, 44, 34, 0.65);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-box {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 40px 36px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background-color: var(--emerald-50);
+            color: var(--emerald-600);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleUp {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar">
+        <div class="brand-container">
+            <div class="brand-logo">D2</div>
+            <div>
+                <div class="brand-title">Tiendas D2</div>
+                <div class="brand-subtitle">Portal Corporativo</div>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button id="btnCambiarVista" class="btn-toggle-view">📂 Ver Registros en la Nube</button>
+            <span class="badge-sede">Sede Ipiales</span>
+        </div>
+    </nav>
+
+    <!-- Header Hero -->
+    <header class="hero-section">
+        <h1 id="tituloHero">Centro de Atención y Servicios</h1>
+        <p id="subtituloHero">Plataforma oficial para la gestión institucional de requerimientos y postulaciones corporativas.</p>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="main-wrapper">
+        
+        <!-- VISTA FORMULARIO -->
+        <div id="vistaFormulario" class="card-form">
+            <div class="form-header">
+                <h2 class="form-title">Formulario de Solicitud</h2>
+                <p class="form-subtitle">Complete los campos obligatorios para registrar su trámite en el sistema.</p>
+            </div>
+
+            <form id="pqrsForm">
+                <div class="input-group">
+                    <label class="input-label" for="nombre">Nombre Completo *</label>
+                    <input type="text" id="nombre" class="input-field" placeholder="Ej. Esteban Reyes" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="correo">Correo Electrónico *</label>
+                    <input type="email" id="correo" class="input-field" placeholder="ejemplo@correo.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="telefono">Teléfono / Celular *</label>
+                    <input type="tel" id="telefono" class="input-field" placeholder="300 123 4567" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="tipo_solicitud">Tipo de Solicitud *</label>
+                    <select id="tipo_solicitud" class="input-field" required>
+                        <option value="">-- Seleccione una opción --</option>
+                        <option value="Consulta general">Consulta general</option>
+                        <option value="PQRS (Peticiones, Quejas, Reclamos, Solicitud de Empleo)">PQRS (Peticiones, Quejas, Reclamos, Solicitud de Empleo)</option>
+                    </select>
+                </div>
+
+                <div id="seccionPdf" class="input-group hidden">
+                    <label class="input-label">Adjuntar Hoja de Vida (PDF)</label>
+                    <div class="upload-container" onclick="document.getElementById('pdfHV').click();">
+                        <span class="upload-icon">📄</span>
+                        <div class="upload-text">Haga clic para seleccionar su archivo PDF</div>
+                        <div class="upload-info">Tamaño máximo permitido: 10 MB</div>
+                    </div>
+                    <input type="file" id="pdfHV" accept="application/pdf" class="hidden">
+                    
+                    <div id="avisoPdfExito" class="toast-alert hidden">
+                        ✓ Su PDF se subió exitosamente
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="mensaje">Detalle de la Solicitud *</label>
+                    <textarea id="mensaje" class="input-field" rows="4" placeholder="Describa detalladamente el motivo de su requerimiento..." required></textarea>
+                </div>
+
+                <div class="terms-group">
+                    <input type="checkbox" id="politicas" required>
+                    <label for="politicas">
+                        Autorizo el tratamiento de mis datos personales de acuerdo con las políticas corporativas de Tiendas D2.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary">Enviar Requerimiento</button>
+            </form>
+        </div>
+
+        <!-- VISTA REGISTROS EN LA NUBE (SUPABASE) -->
+        <div id="vistaRegistros" class="card-form hidden">
+            <div class="form-header">
+                <h2 class="form-title">Registros Almacenados en la Nube</h2>
+                <p class="form-subtitle">Historial en tiempo real sincronizado con Supabase PostgreSQL.</p>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Nombre / Correo</th>
+                            <th>Tipo</th>
+                            <th>PDF</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaCuerpo">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--slate-500); padding: 30px;">Cargando registros...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        © 2026 Tiendas D2 - Todos los derechos reservados. Sede Ipiales.
+    </footer>
+
+    <!-- Modal de Éxito -->
+    <div id="modalExito" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="success-icon">✓</div>
+            <h3 style="font-size: 20px; font-weight: 700; color: var(--slate-900); margin-bottom: 8px;">¡Transacción Exitosa!</h3>
+            <p style="font-size: 14px; color: var(--slate-500); line-height: 1.5; margin-bottom: 24px;">
+                Su solicitud ha sido registrada y guardada con éxito en la base de datos de la nube.
+            </p>
+            <button id="cerrarModal" class="btn-primary" style="padding: 12px;">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Script de Lógica Unificada con Supabase Conectado -->
+    <script>
+        // CREDENCIALES CONFIGURADAS CON LA LLAVE ANON CLÁSICA
+        const SUPABASE_URL = 'https://dokqimzexyyqkrwftnny.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRva3FpbXpleHl5cWtyd2Z0bm55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5NDAyNjAsImV4cCI6MjEwOTUxNjI2MH0.ltJuUiof2fKHH2pQUqlY-8mdjmeF4HruZATrRb_keU4';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const selectTipo = document.getElementById("tipo_solicitud");
+            const seccionPdf = document.getElementById("seccionPdf");
+            const inputPdf = document.getElementById("pdfHV");
+            const avisoPdfExito = document.getElementById("avisoPdfExito");
+            const form = document.getElementById("pqrsForm");
+            const modalExito = document.getElementById("modalExito");
+            const cerrarModal = document.getElementById("cerrarModal");
+            
+            const btnCambiarVista = document.getElementById("btnCambiarVista");
+            const vistaFormulario = document.getElementById("vistaFormulario");
+            const vistaRegistros = document.getElementById("vistaRegistros");
+            const tituloHero = document.getElementById("tituloHero");
+            const subtituloHero = document.getElementById("subtituloHero");
+
+            let temporizadorToast = null;
+            let datosArchivoPdf = null;
+            let modoAdmin = false;
+
+            // Alternar entre Formulario y Registros
+            btnCambiarVista.addEventListener("click", () => {
+                modoAdmin = !modoAdmin;
+                vistaFormulario.classList.toggle("hidden", modoAdmin);
+                vistaRegistros.classList.toggle("hidden", !modoAdmin);
+
+                if (modoAdmin) {
+                    btnCambiarVista.textContent = "📝 Volver al Formulario";
+                    tituloHero.textContent = "Panel de Administración";
+                    subtituloHero.textContent = "Gestión y supervisión de solicitudes corporativas en tiempo real.";
+                    cargarRegistrosSupabase();
+                } else {
+                    btnCambiarVista.textContent = "📂 Ver Registros en la Nube";
+                    tituloHero.textContent = "Centro de Atención y Servicios";
+                    subtituloHero.textContent = "Plataforma oficial para la gestión institucional de requerimientos y postulaciones corporativas.";
+                }
+            });
+
+            // Desplegar campo PDF si selecciona PQRS
+            selectTipo.addEventListener("change", (e) => {
+                if (e.target.value.includes("PQRS")) {
+                    seccionPdf.classList.remove("hidden");
+                } else {
+                    seccionPdf.classList.add("hidden");
+                    inputPdf.value = "";
+                    ocultarAvisoPdf();
+                    datosArchivoPdf = null;
+                }
+            });
+
+            // Validación de PDF (Máx 10 MB)
+            inputPdf.addEventListener("change", (e) => {
+                const archivo = e.target.files[0];
+                if (!archivo) return;
+
+                if (archivo.type !== "application/pdf") {
+                    alert("Por favor seleccione un archivo en formato PDF válido.");
+                    inputPdf.value = "";
+                    ocultarAvisoPdf();
+                    return;
+                }
+
+                const maximoBytes = 10 * 1024 * 1024;
+                if (archivo.size > maximoBytes) {
+                    alert("El archivo excede el tamaño máximo permitido de 10 MB.");
+                    inputPdf.value = "";
+                    ocultarAvisoPdf();
+                    return;
+                }
+
+                datosArchivoPdf = archivo.name;
+                mostrarAvisoPdf();
+            });
+
+            function mostrarAvisoPdf() {
+                avisoPdfExito.classList.remove("hidden");
+                if (temporizadorToast) clearTimeout(temporizadorToast);
+                temporizadorToast = setTimeout(() => {
+                    ocultarAvisoPdf();
+                }, 10000);
+            }
+
+            function ocultarAvisoPdf() {
+                avisoPdfExito.classList.add("hidden");
+            }
+
+            // Enviar datos a Supabase
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const nuevaSolicitud = {
+                    nombre: document.getElementById("nombre").value.trim(),
+                    correo: document.getElementById("correo").value.trim(),
+                    telefono: document.getElementById("telefono").value.trim(),
+                    tipo_solicitud: selectTipo.value,
+                    pdf_nombre: datosArchivoPdf ? datosArchivoPdf : "Ninguno",
+                    mensaje: document.getElementById("mensaje").value.trim()
+                };
+
+                const { error } = await supabaseClient
+                    .from('solicitudes')
+                    .insert([nuevaSolicitud]);
+
+                if (error) {
+                    alert("Error al registrar en la nube: " + error.message);
+                } else {
+                    modalExito.classList.remove("hidden");
+                }
+            });
+
+            // Cargar datos desde Supabase
+            async function cargarRegistrosSupabase() {
+                const tbody = document.getElementById("tablaCuerpo");
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--slate-500); padding: 30px;">Cargando datos desde la nube...</td></tr>`;
+
+                const { data, error } = await supabaseClient
+                    .from('solicitudes')
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626; padding: 30px;">Error al conectar con Supabase.</td></tr>`;
+                    return;
+                }
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--slate-500); padding: 30px;">No hay registros almacenados actualmente.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                data.forEach(item => {
+                    let fechaCorta = item.created_at ? new Date(item.created_at).toLocaleDateString() : "Reciente";
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${fechaCorta}</td>
+                        <td><b>${item.nombre}</b><br><span style="color: var(--slate-500);">${item.correo}</span></td>
+                        <td>${item.tipo_solicitud}</td>
+                        <td>${item.pdf_nombre}</td>
+                        <td>${item.mensaje}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            cerrarModal.addEventListener("click", () => {
+                modalExito.classList.add("hidden");
+                form.reset();
+                seccionPdf.classList.add("hidden");
+                ocultarAvisoPdf();
+                datosArchivoPdf = null;
+            });
+        });
+    </script>
+</body>
+</html>
